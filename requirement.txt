@@ -1,0 +1,25 @@
+# Core
+python-dotenv>=1.0.0
+fastapi>=0.100.0
+uvicorn[standard]>=0.22.0
+
+# LangChain and embeddings
+langchain>=0.1.0
+langchain-community>=0.0.189
+chromadb>=0.3.29
+
+# Vector stores
+faiss-cpu>=1.7.4
+
+# Document loaders
+unstructured>=0.9.15
+pypdf>=3.12.1
+
+# Data processing
+tqdm>=4.65.0
+
+# Optional for local testing
+requests>=2.31.0
+
+# Jupyter support if needed
+notebook>=6.5.4
