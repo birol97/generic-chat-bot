@@ -3,23 +3,19 @@ python-dotenv>=1.0.0
 fastapi>=0.100.0
 uvicorn[standard]>=0.22.0
 
-# LangChain and embeddings
+# LangChain core
 langchain>=0.1.0
 langchain-community>=0.0.189
-chromadb>=0.3.29
+langchain-openai>=0.1.7
 
-# Vector stores
-faiss-cpu>=1.7.4
+# Vector DB
+chromadb>=0.3.29
 
 # Document loaders
 unstructured>=0.9.15
 pypdf>=3.12.1
 
-# Data processing
+# Utils
 tqdm>=4.65.0
-
-# Optional for local testing
 requests>=2.31.0
 
-# Jupyter support if needed
-notebook>=6.5.4
