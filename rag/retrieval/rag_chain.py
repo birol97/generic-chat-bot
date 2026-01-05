@@ -6,7 +6,7 @@ from langchain_core.documents import Document
 from langchain_chroma import Chroma
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-
+from rag.retrieval.vectorstore import get_vectorstore
 
 PERSIST_DIR = "chroma_db"
 
@@ -22,9 +22,9 @@ def build_vectorstore() -> Chroma:
         embedding_function=embeddings,
     )
 
-def build_rag_chain(vectorstore: Chroma):
+def build_rag_chain(vectorstore):
     retriever = vectorstore.as_retriever(search_kwargs={"k": 8})
-    
+
     llm = ChatOpenAI(
         model="gpt-4o-mini",
         temperature=0,
@@ -49,7 +49,7 @@ Rules:
 
     chain = (
         {
-            "context": retriever | format_docs,
+            "context": retriever | (lambda docs: "\n\n".join(d.page_content for d in docs)),
             "question": lambda x: x,
         }
         | prompt
@@ -108,45 +108,50 @@ def extract_images(docs: List[Document]) -> List[str]:
 
     return list(images)
 
-def normalize_images(docs):
+def normalize_images(docs: List[Document]) -> List[Document]:
+    """
+    Ensures that 'images' metadata is always a list, but preserves existing values.
+    """
     for doc in docs:
         images = doc.metadata.get("images", [])
 
-        # Convert JSON string → list
+        # If it's a string (comma separated or JSON), convert to list
         if isinstance(images, str):
             try:
+                # Try JSON decode first
                 images = json.loads(images)
             except Exception:
-                images = []
+                # Fallback: comma separated string
+                images = [img.strip() for img in images.split(",") if img.strip()]
 
-        doc.metadata["images"] = images
+        # Only overwrite if images is a list now
+        if isinstance(images, list):
+            doc.metadata["images"] = images
 
     return docs
+
 # 🔑 THIS IS THE CLEAN PUBLIC API
 def ask_me(question: str) -> Dict:
     embedding_model = OpenAIEmbeddings(
         model="text-embedding-3-small"
     )
 
-    vectorstore = Chroma(
-        persist_directory="./chroma_db",
-        embedding_function=embedding_model,
-    )
+    vectorstore = get_vectorstore() 
 
     chain, retriever = build_rag_chain(vectorstore)
 
     docs = retriever.invoke(question)
-    
+    print(docs[0])
     docs = normalize_images(docs) 
-    for d in docs:
+    for d in docs[:2]:
+      
         if d.metadata.get("file_type") == "pdf":
             print("RETRIEVED PDF IMAGES:", d.metadata.get("images"))
-
+            
     answer = chain.invoke(question)
     
     evidence = build_evidence(docs)
-    print(answer)
-    print(evidence)
+    
     return {
         "answer": answer,
         "evidence": evidence,

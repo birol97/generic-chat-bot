@@ -5,7 +5,6 @@ from typing import List
 from langchain_core.documents import Document
 from langchain_chroma import Chroma
 
-
 def filter_complex_metadata(docs: List[Document]) -> List[Document]:
     """
     Chroma ONLY allows scalar metadata.

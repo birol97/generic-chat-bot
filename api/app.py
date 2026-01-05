@@ -4,13 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from typing import Optional, List
+from api.ingest import router as ingest_router
+
 
 from rag.retrieval.rag_chain import ask_me
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 app = FastAPI(title="RAG Document Chat")
-
+app.include_router(ingest_router)
 app.mount(
     "/images",
     StaticFiles(directory=BASE_DIR / "docs" / "images"),
