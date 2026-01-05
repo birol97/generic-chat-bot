@@ -13,14 +13,26 @@
     }
 
     .container {
-      max-width: 760px;
+      max-width: 1200px;
       margin: auto;
+    }
+
+    .layout {
+      display: flex;
+      gap: 16px;
+      height: 80vh;
+    }
+
+    /* ---------- CHAT ---------- */
+
+    .chat-container {
+      flex: 3;
       background: white;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
       display: flex;
       flex-direction: column;
-      height: 80vh;
+      overflow: hidden;
     }
 
     header {
@@ -57,6 +69,11 @@
       border-radius: 12px 12px 12px 0;
     }
 
+    .loading {
+      font-style: italic;
+      color: #777;
+    }
+
     .evidence {
       margin-top: 8px;
       font-size: 12px;
@@ -77,12 +94,14 @@
       padding: 8px;
       border-radius: 4px;
       white-space: pre-wrap;
+      font-size: 12px;
     }
 
     footer {
       display: flex;
       border-top: 1px solid #e0e0e0;
       padding: 10px;
+      gap: 10px;
     }
 
     input {
@@ -94,7 +113,6 @@
     }
 
     button {
-      margin-left: 10px;
       padding: 10px 16px;
       border-radius: 6px;
       border: none;
@@ -108,9 +126,34 @@
       background: #1565c0;
     }
 
-    .loading {
-      font-style: italic;
-      color: #777;
+    /* ---------- IMAGE PANEL ---------- */
+
+    .image-panel {
+      flex: 1;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      padding: 12px;
+      overflow-y: auto;
+    }
+
+    .image-panel h3 {
+      margin-top: 0;
+      font-size: 14px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 6px;
+    }
+
+    .image-panel img {
+      width: 100%;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .image-panel img:hover {
+      transform: scale(1.03);
     }
   </style>
 </head>
@@ -118,31 +161,47 @@
 <body>
 
 <div class="container">
-  <header>CV Knowledge Assistant</header>
+  <div class="layout">
 
-  <div class="chat" id="chat"></div>
+    <!-- CHAT -->
+    <div class="chat-container">
+      <header>Internal Knowledge Assistant</header>
+      <div class="chat" id="chat"></div>
 
-  <footer>
-    <input
-      id="input"
-      placeholder="Ask me about me…"
-      onkeydown="if(event.key==='Enter') send()"
-    />
-    <button onclick="send()">Send</button>
-  </footer>
+      <footer>
+        <input
+          id="input"
+          placeholder="Ask me about me…"
+          onkeydown="if(event.key==='Enter') send()"
+        />
+        <button onclick="send()">Send</button>
+      </footer>
+    </div>
+
+    <!-- IMAGES -->
+    <div class="image-panel">
+      <h3>Related Images</h3>
+      <div id="images"></div>
+    </div>
+
+  </div>
 </div>
 
 <script>
 async function send() {
   const input = document.getElementById("input");
   const chat = document.getElementById("chat");
+  const imagesDiv = document.getElementById("images");
+
   const question = input.value.trim();
   if (!question) return;
 
+  // User message
   chat.innerHTML += `<div class="message user">${question}</div>`;
   input.value = "";
   chat.scrollTop = chat.scrollHeight;
 
+  // Loading
   chat.innerHTML += `<div class="message bot loading">Thinking…</div>`;
   chat.scrollTop = chat.scrollHeight;
 
@@ -154,9 +213,29 @@ async function send() {
 
   const data = await res.json();
 
-  // Remove loading message
+  // Remove loading
   chat.querySelector(".loading").remove();
 
+  /* ---------- IMAGE HANDLING ---------- */
+  imagesDiv.innerHTML = "";
+  const imageSet = new Set();
+
+  if (Array.isArray(data.evidence)) {
+    data.evidence.forEach(ev => {
+      if (Array.isArray(ev.images)) {
+        ev.images.forEach(img => imageSet.add(img));
+      }
+    });
+  }
+
+  imageSet.forEach(imgPath => {
+    const img = document.createElement("img");
+    img.src = `http://127.0.0.1:8000/${imgPath}`;
+    img.onclick = () => window.open(img.src, "_blank");
+    imagesDiv.appendChild(img);
+  });
+
+  /* ---------- EVIDENCE ---------- */
   let evidenceHtml = "";
   if (Array.isArray(data.evidence) && data.evidence.length > 0) {
     evidenceHtml = `
@@ -175,6 +254,7 @@ async function send() {
     `;
   }
 
+  // Bot message
   chat.innerHTML += `
     <div class="message bot">
       ${data.answer}

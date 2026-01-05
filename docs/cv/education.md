@@ -11,10 +11,13 @@
 - University Degree 2.2
 
 ## Master Education
-- My Master education is in  MSC Computing Dublin city University
 
-### Master Degree
-- Master Degree 2.2
+![Master Diploma](../images/education/master_diploma.jpeg)
+
+- My Master education is in MSC Computing Dublin City University
+- Degree: MSc Computing
+- University: Dublin City University
+- Result: 2.2
 
 ### General Summary
 - I had the chance involving in every aspect of the computers from hardware to software.Specific IOT def

@@ -23,3 +23,18 @@ env/
 
 # FAISS or vectorstore binaries (if you save locally)
 *.faiss
+# Vector databases
+chroma_db/
+faiss_db/
+
+# Generated images
+docs/images/pdf/
+images/pdf/
+
+# PDFs (optional for demo)
+docs/contracts/*.pdf
+
+# Python
+__pycache__/
+*.pyc
+.env
